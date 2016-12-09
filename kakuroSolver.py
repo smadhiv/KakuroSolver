@@ -34,99 +34,9 @@ class kakuroSolver(object):
     for sequenceObject in self.verticalSequences:
       sequenceObject.index[0] -= sequenceObject.lengthOfSequence
     self.verticalSequences.sort(key=lambda x: x.sortBy, reverse=False)
-      
-  def getSolution(self):
-    """this function generates the solution"""
-    
-    #intitialize sequences and the kakuro board
-    self.intitializeKakuroBoard()
-    self.initializeHorizontalDictionary()
-    self.initializeVerticalDictionary()
-    
-    self.getIntersectionInformation()
-    self.fillBoard()
 
-    status = self.testSolution()
-    if status is True:
-      print
-      print "Final Solution"
-      self.printSolution()
-      print
-      print "Congratulations!! You got a valid solution"
-      return
-    if status is not True:
-      for horiSequence in self.horizontalSequences:
-        if horiSequence.isFilled is True:
-          continue
-        toDelete = []
-        for h_permSequence in horiSequence.permutatedSolutions:
-          h_index = 0
-          for h_coordinate in horiSequence.vertices:
-            v_index = 0
-            vertSequence = self.verticalSequencesDict[(h_coordinate)]
-            while h_coordinate != vertSequence.vertices[v_index]:
-              v_index += 1
-            isMatch = False
-            for v_permSequence in vertSequence.permutatedSolutions:
-              if h_permSequence[h_index] == v_permSequence[v_index]:
-                isMatch = True
-                break
-            if isMatch is not True:
-              toDelete.append(h_permSequence)
-              break
-            h_index += 1
-        for item in toDelete:
-          horiSequence.permutatedSolutions.remove(item)
-      
-      for vertSequence in self.verticalSequences:
-        if vertSequence.isFilled is True:
-          continue
-        toDelete = []
-        for v_permSequence in vertSequence.permutatedSolutions:
-          v_index = 0
-          for v_coordinate in vertSequence.vertices:
-            h_index = 0
-            horiSequence = self.horizontalSequencesDict[(v_coordinate)]
-            while v_coordinate != horiSequence.vertices[h_index]:
-              h_index += 1
-            isMatch = False
-            for h_permSequence in horiSequence.permutatedSolutions:
-              if v_permSequence[v_index] == h_permSequence[h_index]:
-                isMatch = True
-                break
-            if isMatch is not True:
-              toDelete.append(v_permSequence)
-              break
-            v_index += 1
-        for item in toDelete:
-          vertSequence.permutatedSolutions.remove(item)
-          
-    self.fillBoard()
-    status = self.testSolution()
-    if status is True:
-      print
-      print "Final Solution"
-      self.printSolution()
-      print
-      print "Congratulations!! You got a valid solution"
-      return
-    else:
-      print
-      print "Final Solution"
-      self.printSolution()
-      print
-      print "Sorry!! You did not get a valid solution"
-      return           
-          
-  def fillBoard(self):
-    self.fillUniqueSequences()
-    status = self.updateSequences()
-    while status is True:
-      self.fillUniqueSequences()
-      status = self.updateSequences()    
-       
-  def getIntersectionInformation(self):
-
+  def initializeEliminateImprobableUniqueSequences(self):
+    """this function removes unique sequences and their permutations that are improbable due to interections with other sequences"""
     for horiSequence in self.horizontalSequences:
       for num in (horiSequence.vertices):
         vertSequence = self.verticalSequencesDict[(num)]
@@ -156,41 +66,103 @@ class kakuroSolver(object):
             for item in tempList:
               vertSequence.permutatedSolutions.remove(list(item))
             isValid = False
-            
+
+  def eliminateSequencePermutations(self):
+    """eliminate improbable permuatations of sequences due to intersections"""
+    status = False
     for horiSequence in self.horizontalSequences:
-      h_count = 0
-      for num in (horiSequence.vertices):
-        vertSequence = self.verticalSequencesDict[(num)]
-        v_count = 0
-        while num != vertSequence.vertices[v_count]:
-          v_count += 1
-        for h_item in horiSequence.permutatedSolutions:
-          isValid = False
-          for v_item in vertSequence.permutatedSolutions:
-            if h_item[h_count] == v_item[v_count]:
-              isValid = True
-          if isValid is not True:
-            horiSequence.permutatedSolutions.remove(h_item)
-        h_count += 1
-            
+      if horiSequence.isFilled is True:
+        continue
+      toDelete = []
+      for h_permSequence in horiSequence.permutatedSolutions:
+        h_index = 0
+        for h_coordinate in horiSequence.vertices:
+          v_index = 0
+          vertSequence = self.verticalSequencesDict[(h_coordinate)]
+          while h_coordinate != vertSequence.vertices[v_index]:
+            v_index += 1
+          isMatch = False
+          for v_permSequence in vertSequence.permutatedSolutions:
+            if h_permSequence[h_index] == v_permSequence[v_index]:
+              isMatch = True
+              break
+          if isMatch is not True:
+            toDelete.append(h_permSequence)
+            status = True
+            break
+          h_index += 1
+      for item in toDelete:
+        horiSequence.permutatedSolutions.remove(item)
+      
     for vertSequence in self.verticalSequences:
-      v_count = 0
-      for num in (vertSequence.vertices):
-        horiSequence = self.horizontalSequencesDict[(num)]
-        h_count = 0
-        while num != horiSequence.vertices[h_count]:
-          h_count += 1                               
-        for v_item in vertSequence.permutatedSolutions:
-          isValid = False
-          for h_item in horiSequence.permutatedSolutions:
-            if h_item[h_count] == v_item[v_count]:
-              isValid = True
-          if isValid is not True:
-            vertSequence.permutatedSolutions.remove(v_item)
-        v_count += 1   
-             
-  def fillUniqueSequences(self):
-    """this function fills the board for horizontal sequences"""
+      if vertSequence.isFilled is True:
+        continue
+      toDelete = []
+      for v_permSequence in vertSequence.permutatedSolutions:
+        v_index = 0
+        for v_coordinate in vertSequence.vertices:
+          h_index = 0
+          horiSequence = self.horizontalSequencesDict[(v_coordinate)]
+          while v_coordinate != horiSequence.vertices[h_index]:
+            h_index += 1
+          isMatch = False
+          for h_permSequence in horiSequence.permutatedSolutions:
+            if v_permSequence[v_index] == h_permSequence[h_index]:
+              isMatch = True
+              break
+          if isMatch is not True:
+            toDelete.append(v_permSequence)
+            status = True
+            break
+          v_index += 1
+      for item in toDelete:
+        vertSequence.permutatedSolutions.remove(item)
+    return status
+            
+  def getSolution(self):
+    """this function generates the solution"""
+    #intitialize sequences and the kakuro board
+    self.intitializeKakuroBoard()
+    self.initializeHorizontalDictionary()
+    self.initializeVerticalDictionary()
+    self.initializeEliminateImprobableUniqueSequences()
+    
+    #fill the kakuro board
+    self.fillBoard()
+
+    #test if solved
+    status = self.testSolution()
+    if status is True:
+      print
+      print "Final Solution"
+      self.printSolution()
+      print
+      print "Congratulations!! You got a valid solution"
+      return
+    if status is not True:
+      print
+      print "Final Solution"
+      self.printSolution()
+      print
+      print "Sorry!! You did not get a valid solution"
+      return           
+          
+  def fillBoard(self):
+    """fills the board with elements confirmed through elimination"""
+    self.eliminateSequencePermutations()
+    self.fillSequences()
+    updateStatus = self.updateSequences()
+    while updateStatus is True:
+      self.fillSequences()
+      updateStatus = self.updateSequences()
+      if updateStatus is not True:
+        eliminateStatus = self.eliminateSequencePermutations()
+        if eliminateStatus is True:
+          updateStatus = True
+        
+                
+  def fillSequences(self):
+    """this function fills the board when there is only one sequence is possible"""
     for sequenceObject in (self.horizontalSequences + self.verticalSequences):
       if len(sequenceObject.permutatedSolutions) != 1 or sequenceObject.isFilled is True:
         continue
@@ -204,6 +176,7 @@ class kakuroSolver(object):
       sequenceObject.isFilled = True
     
   def updateSequences(self):
+    """this function eliminates sequence permutations based on exisiting board configuration"""
     count = 0
     for sequenceObject in (self.horizontalSequences + self.verticalSequences):
       if len(sequenceObject.permutatedSolutions) == 1:
@@ -239,6 +212,7 @@ class kakuroSolver(object):
     return status
 
   def checkNumbersInSameRowColumn(self, numberList, coordinate):
+    """this function checks unfilled elements in the board and eliminates permutations based on filled elements in the same sequence"""
     a, b = coordinate
 
     row = a   
