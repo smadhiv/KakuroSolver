@@ -1,4 +1,4 @@
-from Objects import sequenceObjects
+from sequenceObjects import sequenceObjects
 from kakuroSolver import kakuroSolver
 class extractSequences(object):
   """extract individual sequences from the file for vertical and horizontal"""
