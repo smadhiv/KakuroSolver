@@ -1,4 +1,5 @@
 import itertools
+import copy
 class kakuroSolver(object):
   """this class generates the solution"""
   def __init__(self, rows, columns, horizontalSequencesDict, verticalSequencesDict):
@@ -131,19 +132,24 @@ class kakuroSolver(object):
     self.fillBoard()
 
     #test if solved
-    status = self.testSolution()
-    if status is True:
+    isValidSolution = self.testSolution()
+    if isValidSolution is True:
       print
       print "Final Solution"
       self.printSolution()
       print
       print "Congratulations!! You got a valid solution"
       return
-    if status is not True:
+    if isValidSolution is not True:
+      oldKakuroBoard = copy.copy(self.kakuroBoard)
+      maxSequence, backupHorizontalSequences, backupVerticalSequences = self.getMaxLengthSequence()
       self.printInformation()
       print
       print "Final Solution"
       self.printSolution()
+      print maxSequence.permutatedSolutions 
+      print backupHorizontalSequences 
+      print backupVerticalSequences
       print
       print "Sorry!! You did not get a valid solution"
       return           
@@ -296,6 +302,29 @@ class kakuroSolver(object):
       if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
         return False
     return True
+    
+  def getMaxLengthSequence(self):
+    """get the sequence that has maximum possible permutations and also returns a copy of sequences that are not filled yet"""
+    backupHorizontalSequences = []
+    backupVerticalSequences = []
+
+    maxLengthSequence = None
+    maxSize = 1       
+    for h_sequence in self.horizontalSequences:
+      if len(h_sequence.permutatedSolutions) > 1:
+        backupHorizontalSequences.append(copy.copy(h_sequence))
+        if len(h_sequence.permutatedSolutions) > maxSize:
+          maxSize = len(h_sequence.permutatedSolutions)
+          maxLengthSequence = h_sequence
+
+    for v_sequence in self.verticalSequences:
+      if len(v_sequence.permutatedSolutions) > 1:
+        backupVerticalSequences.append(copy.copy(v_sequence))
+        if len(v_sequence.permutatedSolutions) > maxSize:
+          maxSize = len(v_sequence.permutatedSolutions)
+          maxLengthSequence = v_sequence
+        
+    return maxLengthSequence, backupHorizontalSequences, backupVerticalSequences
     
   def printInformation(self):
     """function to debug that prints sequence values"""
