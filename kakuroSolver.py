@@ -10,6 +10,14 @@ class kakuroSolver(object):
     self.horizontalSequencesDict = horizontalSequencesDict
     self.verticalSequencesDict = verticalSequencesDict
 
+  def intitializeKakuroBoard(self):
+    """initialize the kakuro board"""
+    self.kakuroBoard = [[-1 for x in range(self.columns)] for y in range(self.rows)]
+    for key, sequenceObject in self.horizontalSequencesDict.items():
+      for index in sequenceObject.vertices:
+        a, b = index
+        self.kakuroBoard[a][b] = 0
+
   def initializeHorizontalDictionary(self):
     """convert dictionary to list for easier access of horizontal sequences"""
     for key, sequenceObject in self.horizontalSequencesDict.items():
@@ -26,50 +34,18 @@ class kakuroSolver(object):
     for sequenceObject in self.verticalSequences:
       sequenceObject.index[0] -= sequenceObject.lengthOfSequence
     self.verticalSequences.sort(key=lambda x: x.sortBy, reverse=False)
-
-  def intitializeSolver(self):
-    """initialize the kakuro board"""
-    self.kakuroBoard = [[-1 for x in range(self.columns)] for y in range(self.rows)]
-    for key, sequenceObject in self.horizontalSequencesDict.items():
-      for index in sequenceObject.vertices:
-        a, b = index
-        self.kakuroBoard[a][b] = 0
-
-  def printSolution(self):
-    for num in self.kakuroBoard:
-      for item in num:
-        if item == -1:
-          print '#', ' ',
-        else:
-          print item, ' ',
-      print
       
-  def initializeAll(self):
-    self.intitializeSolver()
+  def getSolution(self):
+    """this function generates the solution"""
+    
+    #intitialize sequences and the kakuro board
+    self.intitializeKakuroBoard()
     self.initializeHorizontalDictionary()
     self.initializeVerticalDictionary()
+    
     self.getIntersectionInformation()
-  
-  def printInformation(self):
-    print "Horizontal"
-    for h_sequence in self.horizontalSequences:
-      if len(h_sequence.permutatedSolutions) > 1:
-        print len(h_sequence.permutatedSolutions)
-        print h_sequence.permutatedSolutions
-    print "Vertical"
-    for v_sequence in self.verticalSequences:
-      if len(v_sequence.permutatedSolutions) > 1:
-        print len(v_sequence.permutatedSolutions)
-        print v_sequence.permutatedSolutions
-              
-  def getSolution(self):
-    print 
-    print "Initial Board"
-    self.initializeAll()
-    self.printSolution()
     self.fillBoard()
 
-    self.printInformation()
     status = self.testSolution()
     if status is True:
       print
@@ -212,34 +188,7 @@ class kakuroSolver(object):
           if isValid is not True:
             vertSequence.permutatedSolutions.remove(v_item)
         v_count += 1   
-    
-  def testSolution(self):
-    """this function tests for validity of the solution"""
-    for key, sequenceObject in self.horizontalSequencesDict.items():
-      sum = 0
-      digits = set()
-      for index in sequenceObject.vertices:
-        a, b = index
-        if self.kakuroBoard[a][b] < 1 or self.kakuroBoard[a][b] > 9:
-          return False
-        digits.add(self.kakuroBoard[a][b])
-        sum += self.kakuroBoard[a][b]
-      if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
-        return False
-        
-    for key, sequenceObject in self.verticalSequencesDict.items():
-      sum = 0
-      digits = set()
-      for index in sequenceObject.vertices:
-        a, b = index
-        if self.kakuroBoard[a][b] < 1 or self.kakuroBoard[a][b] > 9:
-          return False
-        digits.add(self.kakuroBoard[a][b])
-        sum += self.kakuroBoard[a][b]
-      if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
-        return False
-    return True
-          
+             
   def fillUniqueSequences(self):
     """this function fills the board for horizontal sequences"""
     for sequenceObject in (self.horizontalSequences + self.verticalSequences):
@@ -335,14 +284,53 @@ class kakuroSolver(object):
       else:
         numberList.append(self.kakuroBoard[a][column])
         column += 1
+            
+  def printSolution(self):
+    """this function prints the kakuro board"""
+    for num in self.kakuroBoard:
+      for item in num:
+        if item == -1:
+          print '#', ' ',
+        else:
+          print item, ' ',
+      print
+      
+  def testSolution(self):
+    """this function tests for validity of the solution"""
+    for key, sequenceObject in self.horizontalSequencesDict.items():
+      sum = 0
+      digits = set()
+      for index in sequenceObject.vertices:
+        a, b = index
+        if self.kakuroBoard[a][b] < 1 or self.kakuroBoard[a][b] > 9:
+          return False
+        digits.add(self.kakuroBoard[a][b])
+        sum += self.kakuroBoard[a][b]
+      if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
+        return False
         
-  def getSmallestSequence(self):
-    numPerm = 400000
-    returnSequence = None
-    for sequenceObject in (self.horizontalSequences + self.verticalSequences):
-      if sequenceObject.isFilled is True:
-        continue
-      if len(sequenceObject.permutatedSolutions) < numPerm:
-        returnSequence = sequenceObject
-    return returnSequence
+    for key, sequenceObject in self.verticalSequencesDict.items():
+      sum = 0
+      digits = set()
+      for index in sequenceObject.vertices:
+        a, b = index
+        if self.kakuroBoard[a][b] < 1 or self.kakuroBoard[a][b] > 9:
+          return False
+        digits.add(self.kakuroBoard[a][b])
+        sum += self.kakuroBoard[a][b]
+      if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
+        return False
+    return True
     
+  def printInformation(self):
+    """function to debug that prints sequence values"""
+    print "Horizontal"
+    for h_sequence in self.horizontalSequences:
+      if len(h_sequence.permutatedSolutions) > 1:
+        print len(h_sequence.permutatedSolutions)
+        print h_sequence.permutatedSolutions
+    print "Vertical"
+    for v_sequence in self.verticalSequences:
+      if len(v_sequence.permutatedSolutions) > 1:
+        print len(v_sequence.permutatedSolutions)
+        print v_sequence.permutatedSolutions

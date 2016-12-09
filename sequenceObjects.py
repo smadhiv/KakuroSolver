@@ -9,13 +9,10 @@ class sequenceObjects(object):
     self.sortBy= list(reverseIndex)
     self.vertices = [(self.index[0] + (not isHorizontal) * 1 * x, self.index[1] + (isHorizontal) * 1 * x) for x in range(length)]
     self.uniqueSolutions = self.getUniqueCombinations(sumOfInts, length)
-    self.permutatedSolutions = self.getCombinations(sumOfInts, length)
-
-    
+    self.permutatedSolutions = self.getCombinations(sumOfInts, length) 
     if len(self.uniqueSolutions) == 0:
       raise ValueError("No Valid Solution")
-
-    
+   
   def getCombinations(self, sumOfInts, length):
     """generate a list of all possible combinations for given sum and length"""
     if length == 2:
