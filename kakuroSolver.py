@@ -141,8 +141,27 @@ class kakuroSolver(object):
       print "Congratulations!! You got a valid solution"
       return
     if isValidSolution is not True:
-      oldKakuroBoard = copy.copy(self.kakuroBoard)
-      maxSequence, backupHorizontalSequences, backupVerticalSequences = self.getMaxLengthSequence()
+      solutionNumber = 1
+      isHorizontal, backupKakuroBoard, maxSequence, backupHorizontalSequences, backupVerticalSequences = self.getSequenceInformationForMultipleSolution()
+      for permuatation in maxSequence.permutatedSolutions:
+        newPermutation = []
+        if isHorizontal is True:
+          sequenceList = self.horizontalSequences
+        else:
+          sequenceList = self.verticalSequences         
+        for sequence in sequenceList:
+          if sequence.index == maxSequence.index:
+            sequence.permutatedSolutions = newPermutation.append(permuatation)
+            break
+        self.fillBoard()
+        isValidSolution = self.testSolution()
+        if isValidSolution is True:
+          print
+          print "solution number:", solutionNumber
+          self.printSolution()
+        self.restoreSequences(backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences)
+            
+      
       self.printInformation()
       print
       print "Final Solution"
@@ -265,7 +284,56 @@ class kakuroSolver(object):
       else:
         numberList.append(self.kakuroBoard[a][column])
         column += 1
-            
+                
+  def getSequenceInformationForMultipleSolution(self):
+    """get the sequence that has maximum possible permutations and also returns a copy of sequences that are not filled yet"""
+    backupHorizontalSequences = []
+    backupVerticalSequences = []
+    isHorizontal = False
+    maxLengthSequence = None
+    maxSize = 1       
+    for h_sequence in self.horizontalSequences:
+      if len(h_sequence.permutatedSolutions) > 1:
+        backupHorizontalSequences.append(copy.deepcopy(h_sequence))
+        if len(h_sequence.permutatedSolutions) > maxSize:
+          maxSize = len(h_sequence.permutatedSolutions)
+          maxLengthSequence = copy.deepcopy(h_sequence)
+          isHorizontal = True
+
+    for v_sequence in self.verticalSequences:
+      if len(v_sequence.permutatedSolutions) > 1:
+        backupVerticalSequences.append(copy.deepcopy(v_sequence))
+        if len(v_sequence.permutatedSolutions) > maxSize:
+          maxSize = len(v_sequence.permutatedSolutions)
+          maxLengthSequence = copy.deepcopy(v_sequence)
+      
+    backupKakuroBoard = copy.deepcopy(self.kakuroBoard)
+        
+    return isHorizontal, backupKakuroBoard, maxLengthSequence, backupHorizontalSequences, backupVerticalSequences
+
+  def restoreSequences(self, backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences):
+    """this function restores sequences before we attempted a secific combination for the case where we have multiple solutions"""
+    for sequence in backupHorizontalSequences:
+      self.horizontalSequencesDict[sequence.index] = copy.deepcopy(sequence)
+    
+    for sequence in backupHorizontalSequences:
+      self.horizontalSequencesDict[sequence.index] = copy.deepcopy(sequence)
+      
+    self.kakuroBoard = copy.deepcopy(backupKakuroBoard)
+      
+  def printInformation(self):
+    """function to debug that prints sequence values"""
+    print "Horizontal"
+    for h_sequence in self.horizontalSequences:
+      if len(h_sequence.permutatedSolutions) > 1:
+        print len(h_sequence.permutatedSolutions)
+        print h_sequence.permutatedSolutions
+    print "Vertical"
+    for v_sequence in self.verticalSequences:
+      if len(v_sequence.permutatedSolutions) > 1:
+        print len(v_sequence.permutatedSolutions)
+        print v_sequence.permutatedSolutions
+        
   def printSolution(self):
     """this function prints the kakuro board"""
     for num in self.kakuroBoard:
@@ -302,39 +370,3 @@ class kakuroSolver(object):
       if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
         return False
     return True
-    
-  def getMaxLengthSequence(self):
-    """get the sequence that has maximum possible permutations and also returns a copy of sequences that are not filled yet"""
-    backupHorizontalSequences = []
-    backupVerticalSequences = []
-
-    maxLengthSequence = None
-    maxSize = 1       
-    for h_sequence in self.horizontalSequences:
-      if len(h_sequence.permutatedSolutions) > 1:
-        backupHorizontalSequences.append(copy.copy(h_sequence))
-        if len(h_sequence.permutatedSolutions) > maxSize:
-          maxSize = len(h_sequence.permutatedSolutions)
-          maxLengthSequence = h_sequence
-
-    for v_sequence in self.verticalSequences:
-      if len(v_sequence.permutatedSolutions) > 1:
-        backupVerticalSequences.append(copy.copy(v_sequence))
-        if len(v_sequence.permutatedSolutions) > maxSize:
-          maxSize = len(v_sequence.permutatedSolutions)
-          maxLengthSequence = v_sequence
-        
-    return maxLengthSequence, backupHorizontalSequences, backupVerticalSequences
-    
-  def printInformation(self):
-    """function to debug that prints sequence values"""
-    print "Horizontal"
-    for h_sequence in self.horizontalSequences:
-      if len(h_sequence.permutatedSolutions) > 1:
-        print len(h_sequence.permutatedSolutions)
-        print h_sequence.permutatedSolutions
-    print "Vertical"
-    for v_sequence in self.verticalSequences:
-      if len(v_sequence.permutatedSolutions) > 1:
-        print len(v_sequence.permutatedSolutions)
-        print v_sequence.permutatedSolutions
