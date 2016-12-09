@@ -140,6 +140,7 @@ class kakuroSolver(object):
       print "Congratulations!! You got a valid solution"
       return
     if status is not True:
+      self.printInformation()
       print
       print "Final Solution"
       self.printSolution()
