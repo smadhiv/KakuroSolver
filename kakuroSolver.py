@@ -119,73 +119,6 @@ class kakuroSolver(object):
       for item in toDelete:
         vertSequence.permutatedSolutions.remove(item)
     return status
-            
-  def getSolution(self):
-    """this function generates the solution"""
-    #intitialize sequences and the kakuro board
-    self.intitializeKakuroBoard()
-    self.initializeHorizontalDictionary()
-    self.initializeVerticalDictionary()
-    self.initializeEliminateImprobableUniqueSequences()
-    
-    #fill the kakuro board
-    self.fillBoard()
-
-    #test if solved
-    isValidSolution = self.testSolution()
-    if isValidSolution is True:
-      print
-      print "Final Solution"
-      self.printSolution()
-      print
-      print "Congratulations!! You got a valid solution"
-      return
-    if isValidSolution is not True:
-      solutionNumber = 1
-      isHorizontal, backupKakuroBoard, maxSequence, backupHorizontalSequences, backupVerticalSequences = self.getSequenceInformationForMultipleSolution()
-      for permuatation in maxSequence.permutatedSolutions:
-        newPermutation = []
-        if isHorizontal is True:
-          sequenceList = self.horizontalSequences
-        else:
-          sequenceList = self.verticalSequences         
-        for sequence in sequenceList:
-          if sequence.index == maxSequence.index:
-            sequence.permutatedSolutions = newPermutation.append(permuatation)
-            break
-        self.fillBoard()
-        isValidSolution = self.testSolution()
-        if isValidSolution is True:
-          print
-          print "solution number:", solutionNumber
-          self.printSolution()
-        self.restoreSequences(backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences)
-            
-      
-      self.printInformation()
-      print
-      print "Final Solution"
-      self.printSolution()
-      print maxSequence.permutatedSolutions 
-      print backupHorizontalSequences 
-      print backupVerticalSequences
-      print
-      print "Sorry!! You did not get a valid solution"
-      return           
-          
-  def fillBoard(self):
-    """fills the board with elements confirmed through elimination"""
-    self.eliminateSequencePermutations()
-    self.fillSequences()
-    updateStatus = self.updateSequences()
-    while updateStatus is True:
-      self.fillSequences()
-      updateStatus = self.updateSequences()
-      if updateStatus is not True:
-        eliminateStatus = self.eliminateSequencePermutations()
-        if eliminateStatus is True:
-          updateStatus = True
-        
                 
   def fillSequences(self):
     """this function fills the board when there is only one sequence is possible"""
@@ -307,32 +240,113 @@ class kakuroSolver(object):
           maxSize = len(v_sequence.permutatedSolutions)
           maxLengthSequence = copy.deepcopy(v_sequence)
       
-    backupKakuroBoard = copy.deepcopy(self.kakuroBoard)
-        
+    backupKakuroBoard = copy.deepcopy(self.kakuroBoard)      
     return isHorizontal, backupKakuroBoard, maxLengthSequence, backupHorizontalSequences, backupVerticalSequences
 
   def restoreSequences(self, backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences):
     """this function restores sequences before we attempted a secific combination for the case where we have multiple solutions"""
-    for sequence in backupHorizontalSequences:
-      self.horizontalSequencesDict[sequence.index] = copy.deepcopy(sequence)
-    
-    for sequence in backupHorizontalSequences:
-      self.horizontalSequencesDict[sequence.index] = copy.deepcopy(sequence)
-      
+    for h_sequence in backupHorizontalSequences:
+      for h_coordinate in h_sequence.vertices:
+        self.horizontalSequencesDict[h_coordinate] = copy.deepcopy(h_sequence)
+        for sequences in self.horizontalSequences:
+          toDelete = []
+          if sequences.vertices == h_sequence.vertices and sequences.index == list(h_coordinate):
+            toDelete.append(sequences)
+            break
+        for item in toDelete:
+          self.horizontalSequences.remove(item)
+        self.horizontalSequences.append(self.horizontalSequencesDict[h_coordinate])
+ 
+    for v_sequence in backupVerticalSequences:
+      for v_coordinate in v_sequence.vertices:
+        self.verticalSequencesDict[v_coordinate] = copy.deepcopy(v_sequence)
+        for sequences in self.verticalSequences:
+          toDelete = []
+          if sequences.vertices == v_sequence.vertices and sequences.index == list(v_coordinate):
+            toDelete.append(sequences)
+            break
+        for item in toDelete:
+          self.verticalSequences.remove(item)
+        self.verticalSequences.append(self.verticalSequencesDict[v_coordinate])
+
     self.kakuroBoard = copy.deepcopy(backupKakuroBoard)
+ 
+  def fillBoard(self):
+    """fills the board with elements confirmed through elimination"""
+    self.eliminateSequencePermutations()
+    self.fillSequences()
+    updateStatus = self.updateSequences()
+    while updateStatus is True:
+      self.fillSequences()
+      updateStatus = self.updateSequences()
+      if updateStatus is not True:
+        eliminateStatus = self.eliminateSequencePermutations()
+        if eliminateStatus is True:
+          updateStatus = True
+       
+  def uniqueSolution(self):
+    """solve for unique solution"""
+    self.fillBoard()
+    return self.testSolution()
+
+  def multipleSolutions(self):
+    """solve for multiple solutions"""
+    solutionNumber = 0
+    isHorizontal, backupKakuroBoard, maxSequence, backupHorizontalSequences, backupVerticalSequences = self.getSequenceInformationForMultipleSolution()
+          
+    for permuatation in maxSequence.permutatedSolutions:        
+      newPermutatedSolution = []
+      newPermutatedSolution.append(copy.deepcopy(permuatation)) 
+        
+      if isHorizontal is True:
+        sequenceList = self.horizontalSequences
+      else:
+        sequenceList = self.verticalSequences
+          
+      for sequence in sequenceList:
+        if sequence.vertices == maxSequence.vertices:
+          sequence.permutatedSolutions = copy.deepcopy(newPermutatedSolution)
+            
+      self.fillBoard()
+      isValidSolution = self.testSolution()
+      if isValidSolution is True:
+        solutionNumber += 1
+        print
+        print "solution number:", solutionNumber
+        self.printSolution()
+      self.restoreSequences(backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences)
       
-  def printInformation(self):
-    """function to debug that prints sequence values"""
-    print "Horizontal"
-    for h_sequence in self.horizontalSequences:
-      if len(h_sequence.permutatedSolutions) > 1:
-        print len(h_sequence.permutatedSolutions)
-        print h_sequence.permutatedSolutions
-    print "Vertical"
-    for v_sequence in self.verticalSequences:
-      if len(v_sequence.permutatedSolutions) > 1:
-        print len(v_sequence.permutatedSolutions)
-        print v_sequence.permutatedSolutions
+    if solutionNumber == 0:
+      print 
+      print "Sorry!! You did not get a valid solution"
+      self.printDebugInformation()
+      print
+      print "Final Solution"
+      self.printSolution()
+    return   
+      
+  def getSolution(self):
+    """this function generates the solution"""
+    #intitialize sequences and the kakuro board
+    self.intitializeKakuroBoard()
+    self.initializeHorizontalDictionary()
+    self.initializeVerticalDictionary()
+    self.initializeEliminateImprobableUniqueSequences()
+    
+    #solve
+    if self.uniqueSolution() is True:
+      self.printSuccess()
+    else:
+      self.multipleSolutions()
+
+        
+  def printSuccess(self):
+    print
+    print "Solution"
+    self.printSolution()
+    print
+    return   
+
         
   def printSolution(self):
     """this function prints the kakuro board"""
@@ -343,9 +357,11 @@ class kakuroSolver(object):
         else:
           print item, ' ',
       print
+
       
   def testSolution(self):
     """this function tests for validity of the solution"""
+    #horizontal
     for key, sequenceObject in self.horizontalSequencesDict.items():
       sum = 0
       digits = set()
@@ -357,7 +373,8 @@ class kakuroSolver(object):
         sum += self.kakuroBoard[a][b]
       if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
         return False
-        
+    
+    #vertical
     for key, sequenceObject in self.verticalSequencesDict.items():
       sum = 0
       digits = set()
@@ -370,3 +387,18 @@ class kakuroSolver(object):
       if sum != sequenceObject.sumOfInts or len(digits) != sequenceObject.lengthOfSequence:
         return False
     return True
+
+    
+  def printDebugInformation(self):
+    """function to debug that prints sequence values"""
+    print "Horizontal"
+    for h_sequence in self.horizontalSequences:
+      if len(h_sequence.permutatedSolutions) > 1:
+        print len(h_sequence.permutatedSolutions)
+        print h_sequence.permutatedSolutions
+    print "Vertical"
+    for v_sequence in self.verticalSequences:
+      if len(v_sequence.permutatedSolutions) > 1:
+        print len(v_sequence.permutatedSolutions)
+        print v_sequence.permutatedSolutions
+        
