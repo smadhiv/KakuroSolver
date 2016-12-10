@@ -314,7 +314,7 @@ class kakuroSolver(object):
         print "solution number:", solutionNumber
         self.printSolution()
       else:
-        self.multipleSolutions(solutionNumber)
+        solutionNumber = self.multipleSolutions(solutionNumber)
       self.restoreSequences(backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences)
       
     if solutionNumber == 0:
@@ -324,7 +324,7 @@ class kakuroSolver(object):
       print
       print "Final Solution"
       self.printSolution()
-    return   
+    return solutionNumber
       
   def getSolution(self):
     """this function generates the solution"""
