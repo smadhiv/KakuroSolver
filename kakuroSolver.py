@@ -292,7 +292,10 @@ class kakuroSolver(object):
   def multipleSolutions(self, solutionNumber = 0):
     """solve for multiple solutions"""
     isHorizontal, backupKakuroBoard, maxSequence, backupHorizontalSequences, backupVerticalSequences = self.getSequenceInformationForMultipleSolution()
-          
+    
+    if len(backupHorizontalSequences) + len(backupVerticalSequences) < 1:
+      return solutionNumber
+      
     for permuatation in maxSequence.permutatedSolutions:   
       newPermutatedSolution = []
       newPermutatedSolution.append(copy.deepcopy(permuatation)) 
@@ -310,9 +313,7 @@ class kakuroSolver(object):
       isValidSolution = self.testSolution()
       if isValidSolution is True:
         solutionNumber += 1
-        print
-        print "solution number:", solutionNumber
-        self.printSolution()
+        self.printSuccess(solutionNumber)
       else:
         solutionNumber = self.multipleSolutions(solutionNumber)
       self.restoreSequences(backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences)
@@ -341,9 +342,12 @@ class kakuroSolver(object):
       self.multipleSolutions()
 
         
-  def printSuccess(self):
+  def printSuccess(self, solutionNumber = 0):
     print
-    print "Solution"
+    if solutionNumber > 0:
+      print "Solution:", solutionNumber
+    else:
+      print "Solution:"
     self.printSolution()
     print
     return   
