@@ -1,5 +1,5 @@
 # KakuroSolver
-This python implementation solves kakuro puzzle using iterative method to eliminate improbable permutations.
+This python implementation solves kakuro puzzle by recursively eliminating improbable permutations.
 
 Python version used is 2.7.
 
