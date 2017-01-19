@@ -1,5 +1,6 @@
 import itertools
 import copy
+from operator import itemgetter
 class kakuroSolver(object):
   """this class generates the solution"""
   def __init__(self, rows, columns, horizontalSequencesDict, verticalSequencesDict):
@@ -23,7 +24,7 @@ class kakuroSolver(object):
     """convert dictionary to list for easier access of horizontal sequences"""
     for key, sequenceObject in self.horizontalSequencesDict.items():
       self.horizontalSequences.append(sequenceObject)    
-    self.horizontalSequences = sorted(list(set(self.horizontalSequences)))
+    self.horizontalSequences = sorted(list(set(self.horizontalSequences)), key=lambda sequenceLists: sequenceLists.sortBy)
     for sequenceObject in self.horizontalSequences:
       sequenceObject.index[1] -= sequenceObject.lengthOfSequence
       
@@ -319,11 +320,11 @@ class kakuroSolver(object):
       self.restoreSequences(backupKakuroBoard, backupHorizontalSequences, backupVerticalSequences)
       
     if solutionNumber == 0:
-      print 
-      print "Sorry!! You did not get a valid solution"
+      print ()
+      print ("Sorry!! You did not get a valid solution")
       self.printDebugInformation()
-      print
-      print "Final Solution"
+      print ()
+      print ("Final Solution")
       self.printSolution()
     return solutionNumber
       
@@ -343,13 +344,13 @@ class kakuroSolver(object):
 
         
   def printSuccess(self, solutionNumber = 0):
-    print
+    print ()
     if solutionNumber > 0:
-      print "Solution:", solutionNumber
+      print ("Solution:", solutionNumber)
     else:
-      print "Solution:"
+      print ("Solution:")
     self.printSolution()
-    print
+    print ()
     return   
 
         
@@ -358,10 +359,10 @@ class kakuroSolver(object):
     for num in self.kakuroBoard:
       for item in num:
         if item == -1:
-          print '#', ' ',
+          print ('#', ' ', end=" ")
         else:
-          print item, ' ',
-      print
+          print (item, ' ', end=" ")
+      print ()
 
       
   def testSolution(self):
@@ -396,14 +397,14 @@ class kakuroSolver(object):
     
   def printDebugInformation(self):
     """function to debug that prints sequence values"""
-    print "Horizontal"
+    print ("Horizontal")
     for h_sequence in self.horizontalSequences:
       if len(h_sequence.permutatedSolutions) > 1:
-        print len(h_sequence.permutatedSolutions)
-        print h_sequence.permutatedSolutions
-    print "Vertical"
+        print (len(h_sequence.permutatedSolutions))
+        print (h_sequence.permutatedSolutions)
+    print ("Vertical")
     for v_sequence in self.verticalSequences:
       if len(v_sequence.permutatedSolutions) > 1:
-        print len(v_sequence.permutatedSolutions)
-        print v_sequence.permutatedSolutions
+        print (len(v_sequence.permutatedSolutions))
+        print (v_sequence.permutatedSolutions)
         
